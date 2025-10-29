@@ -1,6 +1,8 @@
 import express from "express";
 import { body } from "express-validator";
+
 import { userController } from "../controllers/user.controller.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -8,7 +10,7 @@ router.post(
   "/register",
   [
     body("email").isEmail().withMessage("Invalid Email"),
-    body("fullname.firstname")
+    body("fullname.firstName")
       .isLength({ min: 3 })
       .withMessage("First name must be at least 3 character long"),
     body("password")
@@ -28,5 +30,7 @@ router.post(
   ],
   userController.loginUser
 );
+
+router.get("/profile", authMiddleware.authUser, userController.getUserProfile);
 
 export default router;
