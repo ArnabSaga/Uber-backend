@@ -338,3 +338,83 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:3000/users/profile" -Header
 - Make sure the server is running and `/users` route is mounted in `app.js` or `server.js`.
 
 ---
+
+## `/users/logout` Endpoint
+
+### Endpoint
+
+**GET** `/users/logout`
+
+This endpoint logs out the authenticated user by clearing the authentication token cookie and blacklisting the token so it can no longer be used. It requires a valid JWT provided via the `Authorization: Bearer <token>` header or `token` cookie. The route is defined in `routes/user.route.js` and is typically mounted under `/users`, so the full path is `/users/logout`.
+
+---
+
+### Request
+
+**Headers:**
+
+- `Authorization: Bearer <jwt-token>` (or `token` cookie)
+- `Content-Type: application/json` (optional)
+
+> Note: You must be authenticated to access this endpoint.
+
+---
+
+### Responses / Status Codes
+
+#### ✅ **200 OK**
+
+**Description:** User successfully logged out. The auth token is cleared from the cookie and added to a blacklist so it cannot be reused.
+
+**Example:**
+
+```json
+{ "message": "Logged out" }
+```
+
+---
+
+#### ❌ **401 Unauthorized**
+
+**Description:** Missing or invalid token, or token already blacklisted.
+
+**Example:**
+
+```json
+{ "message": "Unauthorized" }
+```
+
+---
+
+#### ❌ **500 Internal Server Error**
+
+**Description:** Unexpected server or database error.
+
+---
+
+### Implementation Notes
+
+- Route protected by `authMiddleware.authUser` (`routes/user.route.js`).
+- Middleware verifies JWT from cookie or `Authorization` header using `process.env.JWT_TOKEN_SECRET`.
+- Token is removed from the client via `res.clearCookie("token")` and added to the blacklist in MongoDB (`models/blackListToken.model.js`) so it is denied on subsequent requests.
+- On future requests, the middleware checks the blacklist and will reject any blacklisted tokens.
+
+---
+
+### Example (PowerShell-friendly cURL)
+
+```powershell
+$token = '<jwt-token>'
+Invoke-RestMethod -Method Get -Uri "http://localhost:3000/users/logout" -Headers @{ Authorization = "Bearer $token" }
+```
+
+---
+
+### Troubleshooting
+
+- Ensure the `Authorization` header includes a valid Bearer token or a `token` cookie is set.
+- Verify that the JWT secret (`JWT_TOKEN_SECRET`) is configured and matches the one used to sign tokens.
+- Make sure MongoDB is running (required for blacklisting).
+- If you see "Unauthorized", check if the token is valid and not previously blacklisted.
+
+---
