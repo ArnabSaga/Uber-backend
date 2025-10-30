@@ -15,8 +15,8 @@ const registerUser = async (req, res, next) => {
   const hashPassword = await userModel.hashPassword(password);
 
   const user = await userService.createUser({
-    firstname: fullname.firstname,
-    lastname: fullname.lasttname,
+    firstName: fullname.firstName,
+    lastName: fullname.lastName,
     email,
     password: hashPassword,
   });
@@ -49,10 +49,17 @@ const loginUser = async (req, res, next) => {
 
   const token = user.generateAuthToken();
 
+  res.cookie("token", token);
+
   res.status(200).json({ token, user });
+};
+
+const getUserProfile = async (req, res, next) => {
+  res.status(200).json(req.user);
 };
 
 export const userController = {
   registerUser,
   loginUser,
+  getUserProfile,
 };

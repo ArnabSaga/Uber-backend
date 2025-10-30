@@ -250,3 +250,91 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:3000/users/login" -Body $b
 - Check that user exists in database and password is correct.
 
 ---
+
+## `/users/profile` Endpoint
+
+### Endpoint
+
+**GET** `/users/profile`
+
+This endpoint returns the authenticated user's profile. It requires a valid JWT provided via `Authorization: Bearer <token>` header or `token` cookie. The route is defined in `routes/user.route.js` and is typically mounted under `/users`, so the full path is `/users/profile`.
+
+---
+
+### Request
+
+**Headers:**
+
+- `Authorization: Bearer <jwt-token>` (or `token` cookie)
+- `Content-Type: application/json` (optional)
+
+> Note: You must first obtain a token from `/users/register` or `/users/login`.
+
+---
+
+### Responses / Status Codes
+
+#### ✅ **200 OK**
+
+**Description:** Returns the authenticated user's profile.
+
+**Example:**
+
+```json
+{
+  "_id": "...",
+  "fullname": { "firstname": "John", "lastname": "Doe" },
+  "email": "john@example.com"
+}
+```
+
+---
+
+#### ❌ **401 Unauthorized**
+
+**Description:** Missing or invalid token, or user not found.
+
+**Example:**
+
+```json
+{ "message": "Unauthorized" }
+```
+
+or
+
+```json
+{ "message": "User not found" }
+```
+
+---
+
+#### ❌ **500 Internal Server Error**
+
+**Description:** Unexpected server error.
+
+---
+
+### Implementation Notes
+
+- Route protected by `authMiddleware.authUser` (`routes/user.route.js`).
+- Middleware verifies JWT from cookie or `Authorization` header using `process.env.JWT_TOKEN_SECRET` and loads the user (`middleware/auth.middleware.js`).
+- Controller responds with `req.user` (`controllers/user.controller.js`).
+
+---
+
+### Example (PowerShell-friendly cURL)
+
+```powershell
+$token = '<jwt-token>'
+Invoke-RestMethod -Method Get -Uri "http://localhost:3000/users/profile" -Headers @{ Authorization = "Bearer $token" }
+```
+
+---
+
+### Troubleshooting
+
+- Ensure the `Authorization` header includes a valid Bearer token or a `token` cookie is set.
+- Verify the JWT secret (`JWT_TOKEN_SECRET`) is configured and matches the one used to sign tokens.
+- Make sure the server is running and `/users` route is mounted in `app.js` or `server.js`.
+
+---
